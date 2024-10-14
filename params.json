@@ -1,0 +1,98 @@
+{
+
+    "training_parameters":
+    {
+        "num_episodes" : 300,
+        "mutation_time" : 301,
+        "remember_every" : 1,
+
+        "recorder_parameters":
+        {
+            "ONUR_COMMENT3" : "nothing for now"
+        },
+
+        "plotter_parameters":
+        {
+            "ONUR_COMMENT4" : "nothing for now"
+        }
+    },
+
+
+    "agent_generation_parameters" :
+    {
+        "num_agents" : 1000,
+        "ratio_mutating" : 0.2,
+        "agent_attributes" : ["id", "origin", "destination", "start_time", "kind"],
+        "simulation_timesteps" : "${simulation_parameters.simulation_timesteps}",
+        "origins" : "${simulation_parameters.origins}",
+        "destinations" : "${simulation_parameters.destinations}",
+
+        "action_space_size" : "${simulation_parameters.number_of_paths}",
+        "ONUR_COMMENT1" : "DO NOT PUT DEPENDENT VARS BELOW THIS LEVEL",
+
+        "machine_agent_parameters" :
+        {
+            "min_alpha" : 0.1,
+            "max_alpha" : 0.6,
+            "min_epsilon" : 0.9,
+            "max_epsilon" : 1.0,
+            "min_eps_decay" : 0.99,
+            "max_eps_decay" : 0.99999,
+            "gamma" : 0.95
+        },
+
+        "human_agent_parameters" :
+        {
+            "alpha" : 0.2,
+            "beta" : 0.2
+            ,
+            "beta_randomness" : 0.3,
+            "learning_type" : "weight",
+            "act_type" : "no_test",
+            "alpha_nulla" : 0.2,
+            "alpha_sigma" : 0.2,
+            "delta" : 0.2,
+            "greedy" : 0.3,
+            "remember" : 5,
+            "mu" : 0.1,
+            "randomness" : 0.4,
+            "noise_alpha" : 0
+        }
+    },
+
+
+    "environment_parameters":
+    {
+        "ONUR_COMMENT2" : "nothing for now"
+    },
+
+    "simulation_parameters":
+    {
+        "sumo_type" : "sumo",
+        "network_type" : "grid",
+        "seed" : "23423",
+        "sumo_config_path" : "Network_and_config/arterial4x4.sumocfg",
+        "connection_file_path" : "Network_and_config/arterial.con.xml",
+        "edge_file_path" : "Network_and_config/arterial.edg.xml",
+        "route_file_path" : "Network_and_config/grid.rou.xml",
+        "routes_xml_save_path" : "Network_and_config/rou.rou.xml",
+        "detector_xml_save_path" : "Network_and_config/det.add.xml",
+        "path_csv_save_path" : "Network_and_config/paths.csv",
+        "path_csv_save_detectors" : "Network_and_config/detectors.csv",
+
+        "number_of_paths" : 3,
+        "weight" : "time",
+        "num_samples" : 100,
+        "max_path_length" : 100,
+        "simulation_timesteps" : 3600,
+        "beta" : -2,
+        "route_utility_coeffs" : [0.2, 0.2, 0.2, 0.4],
+
+        "origins" : ["B3A3", "B0A0"],
+        "destinations" : ["C0D0", "C3D3"],
+
+        "ONUR_COMMENT3" : "Make sure origins are not dead-ends",
+        "ONUR_COMMENT4" : "Make sure destinations are reachable"
+    }
+    
+}
