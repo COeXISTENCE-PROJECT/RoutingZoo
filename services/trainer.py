@@ -31,7 +31,7 @@ class Trainer:
     def train(self, env, agents):
         # Create record & plot objects
         self.recorder = Recorder(self.recorder_params)
-        self.plotter = Plotter(self.mutation_time, self.recorder.episodes_folder, self.recorder.agents_folder, self.recorder.sim_length_file_path, self.plotter_params)
+        #self.plotter = Plotter(self.mutation_time, self.recorder.episodes_folder, self.recorder.agents_folder, self.recorder.sim_length_file_path, self.plotter_params)
         env.start()
 
         print(f"\n[INFO] Training is starting with {self.num_episodes} episodes.")
@@ -54,7 +54,7 @@ class Trainer:
 
         self.show_training_time(start_time)
         env.stop()
-        self.plotter.visualize_all(self.recorder.saved_episodes)
+        #self.plotter.visualize_all(self.recorder.saved_episodes)
         #Fundamental_diagram.Data_collection()
         #fundamental_mean_speed.Data_collection()
 

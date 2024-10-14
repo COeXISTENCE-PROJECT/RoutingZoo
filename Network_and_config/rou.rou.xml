@@ -1,0 +1,38 @@
+<routes>
+<route id="0_0_0" edges="
+nt14_nt13 nt13_nt9 nt9_nt5 nt5_nt6 nt6_nt2 nt2_nt3 nt3_nt4
+" />
+<route id="0_0_1" edges="
+nt14_nt13 nt13_nt9 nt9_nt10 nt10_nt6 nt6_nt7 nt7_nt3 nt3_nt4
+" />
+<route id="0_0_2" edges="
+nt14_nt13 nt13_nt9 nt9_nt10 nt10_nt6 nt6_nt2 nt2_nt3 nt3_nt4
+" />
+<route id="1_0_0" edges="
+nt1_nt2 nt2_nt3 nt3_nt4
+" />
+<route id="1_0_1" edges="
+nt1_nt2 nt2_np2 np2_nt2 nt2_nt3 nt3_nt4
+" />
+<route id="1_0_2" edges="
+nt1_nt2 nt2_nt6 nt6_nt7 nt7_nt3 nt3_nt4
+" />
+<route id="0_1_0" edges="
+nt14_nt13 nt13_np13 np13_nt13 nt13_nt14 nt14_nt15 nt15_nt16
+" />
+<route id="0_1_1" edges="
+nt14_nt13 nt13_np12 np12_nt13 nt13_nt14 nt14_nt15 nt15_nt16
+" />
+<route id="0_1_2" edges="
+nt14_nt13 nt13_np13 np13_nt13 nt13_nt14 nt14_np11 np11_nt14 nt14_nt15 nt15_nt16
+" />
+<route id="1_1_0" edges="
+nt1_nt2 nt2_nt6 nt6_nt10 nt10_nt11 nt11_nt15 nt15_nt16
+" />
+<route id="1_1_1" edges="
+nt1_nt2 nt2_nt3 nt3_nt7 nt7_nt11 nt11_nt15 nt15_nt16
+" />
+<route id="1_1_2" edges="
+nt1_nt2 nt2_nt6 nt6_nt7 nt7_nt11 nt11_nt15 nt15_nt16
+" />
+</routes>

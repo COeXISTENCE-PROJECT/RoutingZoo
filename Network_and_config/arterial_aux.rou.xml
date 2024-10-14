@@ -1,0 +1,10 @@
+<routes>
+<route id='1' edges='np12_nt13 nt9_np14'/>
+<route id='2' edges='np9_nt16 nt16_np8'/>
+<route id='3' edges='np13_nt13 nt1_np1'/>
+<route id='4' edges='np15_nt5 nt4_np4'/>
+<route id='5' edges='np7_nt12 nt14_np11'/>
+<route id='6' edges='np5_nt4 nt15_np10'/>
+<route id='7' edges='np2_nt2 nt8_np6'/>
+<route id='8' edges='np3_nt3 nt1_np16'/>
+</routes>

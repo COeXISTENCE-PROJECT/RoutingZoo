@@ -2,7 +2,7 @@
 
     "training_parameters":
     {
-        "num_episodes" : 300,
+        "num_episodes" : 2,
         "mutation_time" : 301,
         "remember_every" : 1,
 
@@ -20,7 +20,7 @@
 
     "agent_generation_parameters" :
     {
-        "num_agents" : 1000,
+        "num_agents" : 2,
         "ratio_mutating" : 0.2,
         "agent_attributes" : ["id", "origin", "destination", "start_time", "kind"],
         "simulation_timesteps" : "${simulation_parameters.simulation_timesteps}",
