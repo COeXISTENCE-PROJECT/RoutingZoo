@@ -6,6 +6,15 @@ from abc import ABC, abstractmethod
 from keychain import Keychain as kc
 
 
+"""
+IMPROVEMENTS:
+
+1. have a given number number of paths
+2. each agent has different choice set (of a fixed size)
+3. each agent has own parameters
+4. add information to choice (previous days)
+"""
+
 class Agent(ABC):
 
     """
