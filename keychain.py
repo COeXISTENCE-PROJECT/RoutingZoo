@@ -15,7 +15,7 @@ class Keychain:
     DETECTOR_LOGS_FOLDER = 'detector'
     AGENTS_LOGS_FOLDER = "agents"
 
-    AGENTS_DATA_FILE_NAME = "agents_data.csv"
+    AGENTS_DATA_FILE_NAME = "agents_data.csv"s
     SIMULATION_LENGTH_LOG_FILE_NAME = "simulation_length.txt"
     PATHS_CSV_FILE_NAME = "paths.csv"
     FREE_FLOW_TIMES_CSV_FILE_NAME = "free_flow_times.csv"

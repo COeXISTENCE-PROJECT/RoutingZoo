@@ -50,7 +50,7 @@
             "learning_type" : "weight",
             "act_type" : "no_test",
             "alpha_nulla" : 0.2,
-            "alpha_sigma" : 0.2,
+            "alpha_j" : 0.2,
             "delta" : 0.2,
             "greedy" : 0.3,
             "remember" : 5,
