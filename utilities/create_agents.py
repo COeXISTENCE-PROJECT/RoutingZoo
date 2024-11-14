@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import random
 
@@ -35,16 +36,17 @@ def create_agent_objects(params, free_flow_times):
         id, start_time = row_dict[kc.AGENT_ID], row_dict[kc.AGENT_START_TIME]
         origin, destination = row_dict[kc.AGENT_ORIGIN], row_dict[kc.AGENT_DESTINATION]
 
-        if row_dict[kc.AGENT_KIND] == kc.TYPE_MACHINE: ##### Changed
+        #if row_dict[kc.AGENT_KIND] == kc.TYPE_MACHINE: ##### Changed
+        #    agent_params = params[kc.HUMAN_AGENT_PARAMETERS]
+        #    initial_knowledge = free_flow_times[(origin, destination)]
+        #    mutate_to = MachineAgent(id, start_time, origin, destination, params[kc.MACHINE_AGENT_PARAMETERS], action_space_size)
+        #    new_agent = HumanAgent(id, start_time, origin, destination, agent_params, initial_knowledge, mutate_to)
+        #    agents.append(new_agent)
+        if row_dict[kc.AGENT_KIND] == kc.TYPE_HUMAN:
             agent_params = params[kc.HUMAN_AGENT_PARAMETERS]
             initial_knowledge = free_flow_times[(origin, destination)]
-            mutate_to = MachineAgent(id, start_time, origin, destination, params[kc.MACHINE_AGENT_PARAMETERS], action_space_size)
-            new_agent = HumanAgent(id, start_time, origin, destination, agent_params, initial_knowledge, mutate_to)
-            agents.append(new_agent)
-        elif row_dict[kc.AGENT_KIND] == kc.TYPE_HUMAN:
-            agent_params = params[kc.HUMAN_AGENT_PARAMETERS]
-            initial_knowledge = free_flow_times[(origin, destination)]
-            agents.append(HumanAgent(id, start_time, origin, destination, agent_params, initial_knowledge))
+            human_noise = np.random.gumbel()
+            agents.append(HumanAgent(id, start_time, origin, destination, agent_params, initial_knowledge, action_space_size, human_noise))
         else:
             print('[AGENT TYPE INVALID] Unrecognized agent type: ' + row_dict[kc.AGENT_KIND])
 

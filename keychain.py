@@ -65,7 +65,7 @@ class Keychain:
     BETA_RANDOMNESS = "beta_randomness"
     REMEMBER = 'remember'
     ALPHA_NULLA = 'alpha_nulla'
-    ALPHA_SIGMA = 'alpha_sigma'
+    ALPHA_J = 'alpha_j'
     DELTA = 'delta'
     GREEDY = 'greedy'
     LEARNING_TYPE = 'learning_type'

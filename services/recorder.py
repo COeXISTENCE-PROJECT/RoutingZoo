@@ -71,7 +71,7 @@ class Recorder:
             beta, alpha, cost, q_table, epsilon, epsilon_decay_rate, gamma, to_mutate, utility, noise = [kc.NOT_AVAILABLE] * 10
             cost, utility, noise = [kc.NOT_AVAILABLE] * 3
             if kind == kc.TYPE_HUMAN:
-                beta, alpha, cost, to_mutate, utility, noise = agent.beta, agent.alpha, list_to_string(agent.cost, ' , '), (agent.mutate_to != None), list_to_string(agent.utility), agent.noise
+                beta, alpha, cost, to_mutate, utility, noise = agent.beta, agent.alpha, list_to_string(agent.cost, ' , '), (agent.mutate_to != None), list_to_string(agent.stored_utilities), list_to_string(agent.stored_noises)
             elif kind == kc.TYPE_MACHINE:
                 alpha, epsilon, epsilon_decay_rate, gamma, q_table = agent.alpha, agent.epsilon, agent.epsilon_decay_rate, agent.gamma, list_to_string(agent.q_table, ' , ')
             #row_data = [id, kind, cost, to_mutate, utility, alpha, beta, epsilon, epsilon_decay_rate, gamma, q_table]

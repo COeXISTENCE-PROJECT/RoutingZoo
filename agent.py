@@ -44,46 +44,61 @@ class Agent(ABC):
 
 class HumanAgent(Agent):
 
-    def __init__(self, id, start_time, origin, destination, params, initial_knowledge, mutate_to=None):
+    def __init__(self, id, start_time, origin, destination, params, initial_knowledge, action_space_size, human_noise, mutate_to=None):
         super().__init__(id, start_time, origin, destination)
 
         self.kind = kc.TYPE_HUMAN
         self.mutate_to = mutate_to
-        self.utility = [0, 0, 0] #RK: This shall be generic, not 3 elements (np.zeros(kc.ACTION_SPACE) - or sth like this)
+        self.action_space = action_space_size
+        self.stored_utilities = list(np.zeros(self.action_space,dtype=int)) #RK: This shall be generic, not 3 elements (np.zeros(kc.ACTION_SPACE) - or sth like this)
         self.act_type = params[kc.ACT_TYPE]
         self.type = params[kc.LEARNING_TYPE]
-        self.alpha_nulla = params[kc.ALPHA_NULLA]
-        self.alpha_sigma = params[kc.ALPHA_SIGMA] #RK: How about varying weights for weighted average?
+        #self.alpha_nulla = params[kc.ALPHA_NULLA]
+        #self.alpha_j = params[kc.ALPHA_J] #RK: How about varying weights for weighted average?
         self.remember = params[kc.REMEMBER]
         self.delta = params[kc.DELTA]
         self.greedy = params[kc.GREEDY]
         self.test = id
+        self.old_c_hat = [0]
+
+        if self.type == 'culo': #this is redundant, this can be hanlded directly at the initialization via kc.PARAMS, no need to do it here
+            self.alpha_nulla = 1
+            self.alpha_j = params[kc.ALPHA_J]
+        elif self.type == 'markow':
+            self.alpha_nulla = params[kc.ALPHA_NULLA]
+            self.alpha_j = 1 - self.alpha_nulla
+        elif self.type == 'weight':
+            self.alpha_nulla = 0
+            self.alpha_j = params[kc.ALPHA_J]
+        else:
+            print('Correct model definition missing - default markow')
+            self.alpha_nulla = params[kc.ALPHA_NULLA]
+            self.alpha_j = 1 - self.alpha_nulla
 
         beta_randomness = params[kc.BETA_RANDOMNESS]
         self.beta = params[kc.BETA]
         self.alpha = params[kc.ALPHA]
         self.mu = params[kc.MU]
         self.noise_alpha = params[kc.NOISE_ALPHA]
-        self.noise = None
+        self.stored_noise = None
         self.randomness = params[kc.RANDOMNES]
 
-        self.noise_systematic = np.random.gumbel() #RK: This shall be generalized towards 'k'-paths noise at init.
+        self.human_noise = human_noise #RK: This shall be generalized towards 'k'-paths noise at init.
 
         self.cost = np.array(initial_knowledge, dtype=float)
-        self.days = []
-        for i in range(3): #RK: this shall be a param - action_space, not hard_coded to "3"
-            self.days.append([])
+        self.days = list(np.zeros(action_space_size))
+        #for i in range(self.action_space): #RK: this shall be a param - action_space, not hard_coded to "3"
+            #self.days.append([])
 
-        def dayer(): #RK: are you sure this shall be in init?
-            for i in range(len(self.cost)):
-                for r in range(self.remember):
-                    self.days[i].append(self.cost[i])
-        dayer()
-        
+        self.create_memory()
+        self.route_taste = self.taste_noise()
+
     
     def make_noise(self):
 
-        self.noise = self.noise_alpha * self.noise_systematic + (1-self.noise_alpha) * np.random.gumbel() #RK: This shall be generalized to noise for each actin for each day
+        noises = self.noise_alpha * self.human_noise + (self.noise_taste) * self.route_taste + self.noise_random + np.random.gumbel(size=self.action_space) #RK: This shall be generalized to noise for each actin for each day
+        
+        self.stored_noises = noises
     
     def act(self, state):  
         """ 
@@ -94,8 +109,9 @@ class HumanAgent(Agent):
         #    prob_dist = [self.calculate_prob(utilities, j) for j in range(len(self.cost))]
         #elif self.act_type == 'no_test':
         #print('before:',self.test,self.utility)
-        self.make_noise() #RK: Make noise for each path
-        utilities = list(map(lambda x: ((self.beta * x) + self.noise), self.cost)) #RK: here to do: self.noise[k]
+        self.make_noise()
+        #noises = self.make_noise() #RK: Make noise for each path
+        utilities = list(map(lambda x,y: ((self.beta * x) + y), self.cost,self.stored_noises)) #RK: here to do: self.noise[k]
         #else:
         #    raise ValueError("Define Act type")
 
@@ -106,23 +122,29 @@ class HumanAgent(Agent):
         #if self.act_type == 'test':
         #    action = np.random.choice(list(range(len(self.cost))), p=prob_dist) 
         #else:
-        p = np.random.random()
 
-        if p < self.greedy:
+        if abs(self.old_c_hat[-2] - self.old_c_hat[-1]) >= self.gamma_u:
 
-            action = np.random.randint(low=0,high=len(self.utility)) #RK: First bounded rationality, then greedy.
+            p = np.random.random()
 
-        else:
+            if p < self.greedy:
 
-            if (self.utility.index(min(self.utility))-utilities.index(min(utilities)))**2 < self.delta:  #RK: Normalize utilities (a-b/a) and get rid of squer (unless found reference that this is advocated)
-
-                action = self.utility.index(min(self.utility))
-                self.utility = self.utility # redundant
+                action = np.random.randint(low=0,high=len(self.stored_utilities)) #RK: First bounded rationality, then greedy.
 
             else:
 
-                action =  utilities.index(min(utilities))
-                self.utility = utilities  # RK: confusing, why you mix singular (utility) with plural (utilities) - change names.
+                action =  np.argmin(utilities)
+                self.stored_utilities = utilities
+
+            #if (self.utility.index(min(self.utility))-utilities.index(min(utilities)))**2 < self.delta:  #RK: Normalize utilities (a-b/a) and get rid of squer (unless found reference that this is advocated)
+
+            #    action = self.utility.index(min(self.utility))
+            #    self.utility = self.utility # redundant
+
+            #else:
+
+            #    action =  utilities.index(min(utilities))
+            #    self.utility = utilities  # RK: confusing, why you mix singular (utility) with plural (utilities) - change names.
                 #why here you save the latest utilites with noise and not in the case when you did not updated? Please discuss and check.
 
         
@@ -132,53 +154,86 @@ class HumanAgent(Agent):
 
 
     def learn(self, action, reward, observation):
-        if self.type == 'culo': #this is redundant, this can be hanlded directly at the initialization via kc.PARAMS, no need to do it here
-            alpha_nulla = 1
-            alpha_sigma = self.alpha_sigma
-        elif self.type == 'markow':
-            alpha_nulla = self.alpha_nulla #RK: Remember you call this function for every agent for every day - why do you set it here? this shall be part of init.
-            alpha_sigma = 1 - alpha_nulla
-        elif self.type == 'weight':
-            alpha_nulla = 0
-            alpha_sigma = self.alpha_sigma
-            if self.cost[action] != reward: #RK: This is quite dangerous assumption. you beeter check this condition somehow else (what if the costs are the same on two paths?)
-                del(self.days[action][len(self.days[action])-1]) #RK: I would try to data structure called queue here https://docs.python.org/3/library/queue.html
-                self.days[action].insert(0,self.cost[action])
-            for i in range(self.remember):
-                    a = 1/i+1 #RK: This shall be handled via params, see at formulas in Tristan submission and implement accordingly
-                    reward = 0
-                    reward += a * self.days[action][i] #RK: Where here is the loop over paths? you update only a single path ([action])? If so, why? let's discuss.
-        else:
-            print('Correct model definition missing - default markow')
-            alpha_nulla = self.alpha_nulla
-            alpha_sigma = 1 - alpha_nulla
-        
-        if ((alpha_nulla * self.cost[action] + alpha_sigma * reward)-self.cost[action])**2 < self.delta:  #RK: normalize and avoid square.
+        #if self.type == 'culo': #this is redundant, this can be hanlded directly at the initialization via kc.PARAMS, no need to do it here
+        #    alpha_nulla = 1
+        #    alpha_j = self.alpha_j
+        #elif self.type == 'markow':
+        #    alpha_nulla = self.alpha_nulla #RK: Remember you call this function for every agent for every day - why do you set it here? this shall be part of init.
+        #    alpha_j = 1 - alpha_nulla
+        #elif self.type == 'weight':
+        #    alpha_nulla = 0
+        #    alpha_j = self.alpha_j
+        #if self.type == 'weight':
+            #if self.cost[action] != reward: #RK: This is quite dangerous assumption. you beeter check this condition somehow else (what if the costs are the same on two paths?)
+            #    del(self.days[action][len(self.days[action])-1]) #RK: I would try to data structure called queue here https://docs.python.org/3/library/queue.html
+            #    self.days[action].insert(0,self.cost[action])
+            #for i in range(self.remember):
+                    #a = (i+1)**(-1) #RK: This shall be handled via params, see at formulas in Tristan submission and implement accordingly
+            #        c_hat = 0
+            #        c_hat += self.alpha_j[i] * self.days[action][i] #RK: Where here is the loop over paths? you update only a single path ([action])? If so, why? let's discuss.
 
-            self.cost[action] = self.cost[action] #RK: this is redundant
+        #else:
+            #print('Correct model definition missing - default markow')
+            #alpha_nulla = self.alpha_nulla
+            #alpha_j = 1 - alpha_nulla
 
-        else:
+            #c_hat = self.alpha_nulla * self.cost[action] + self.alpha_j * reward
 
-            self.cost[action] = alpha_nulla * self.cost[action] + alpha_sigma * reward #RK: are you sure you update costs only if the path was chosen?
+        #if (c_hat-reward) <= self.lower or (c_hat-reward)>= self.upper:  #RK: normalize and avoid square.
+        if abs(self.old_c_hat[-1]-reward) >= self.gamma_c:
 
+            if self.type == 'weight':
+                if self.cost[action] != reward: #RK: This is quite dangerous assumption. you beeter check this condition somehow else (what if the costs are the same on two paths?)
+                    del(self.days[action][len(self.days[action])-1]) #RK: I would try to data structure called queue here https://docs.python.org/3/library/queue.html
+                    self.days[action].insert(0,self.cost[action])
+                for i in range(self.remember):
+                    #a = (i+1)**(-1) #RK: This shall be handled via params, see at formulas in Tristan submission and implement accordingly
+                    c_hat = 0
+                    c_hat += self.alpha_j[i] * self.days[action][i]
+
+                else:
+            #print('Correct model definition missing - default markow')
+            #alpha_nulla = self.alpha_nulla
+            #alpha_j = 1 - alpha_nulla
+
+                    c_hat = self.alpha_nulla * self.cost[action] + self.alpha_j * reward
+
+            #self.cost[action] = self.cost[action] #RK: this is redundant
+            self.cost[action] = c_hat
+            self.old_c_hat.append(c_hat)
+
+            #self.cost[action] = self.alpha_nulla * self.cost[action] + self.alpha_j * reward #RK: are you sure you update costs only if the path was chosen?
         #self.cost[action]=(1-self.alpha) * self.cost[action] + self.alpha * reward
 
 
-    def calculate_prob(self, utilities, n):
-        prob = utilities[n] / sum(utilities)
-        return prob
+    #def calculate_prob(self, utilities, n):
+        #prob = utilities[n] / sum(utilities)
+        #return prob
     
 
     def mutate(self):
         self.mutate_to.q_table = self.cost
         return self.mutate_to
     
+    def create_memory(self): #RK: are you sure this shall be in init?
+
+        for i in range(len(self.cost)):
+            for r in range(self.remember):
+                self.days[i].append(self.cost[i])
+
+    def taste_noise(self):
+
+        taste_noise = np.random.gumbel(size=self.action_space)
+        
+        return taste_noise
 
 
 
-class MachineAgent(Agent):
 
-    def __init__(self, id, start_time, origin, destination, params, action_space_size):
+
+#class MachineAgent(Agent):
+
+#    def __init__(self, id, start_time, origin, destination, params, action_space_size):
         super().__init__(id, start_time, origin, destination)
 
         self.kind = kc.TYPE_MACHINE
@@ -197,18 +252,18 @@ class MachineAgent(Agent):
         self.q_table = np.zeros((action_space_size))
 
 
-    def act(self, state):
+#    def act(self, state):
         if np.random.rand() < self.epsilon:    # Explore
             return np.random.choice(self.action_space_size)
         else:    # Exploit
             return np.argmin(self.q_table)
                 
 
-    def learn(self, action, reward, observation):
+#    def learn(self, action, reward, observation):
         prev_knowledge = self.q_table[action]
         self.q_table[action] = prev_knowledge + (self.alpha * (reward - prev_knowledge))
         self.decay_epsilon()
 
 
-    def decay_epsilon(self):    # Slowly become deterministic
+#    def decay_epsilon(self):    # Slowly become deterministic
         self.epsilon *= self.epsilon_decay_rate
