@@ -11,11 +11,13 @@ class Table_record_creator:
 
         """
 
-        Create one row for the final table
+        Create one row for the final table\n
 
-        number_of_episode: Overall number of episode [int]
-        folder: The name of the folder of the simulation [str]
-        day_limit: The number  of day which should be examined [int]
+        Values:\n
+
+        number_of_episode: Overall number of episode [int]\n
+        folder: The name of the folder of the simulation [str]\n
+        day_limit: The number  of day which should be examined [int]\n
         action_space: The number of the action space [int]
 
 
@@ -27,7 +29,7 @@ class Table_record_creator:
         self.action_space = action_space
 
         self.check_raw_folder()
-        self.check_raw_folder()
+        self.check_result_folder()
 
     
     def table_record(self):
