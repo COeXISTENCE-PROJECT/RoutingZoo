@@ -3,8 +3,6 @@ import random
 
 from abc import ABC, abstractmethod
 
-from keychain import Keychain as kc
-
 
 """
 IMPROVEMENTS:
@@ -153,7 +151,7 @@ class HumanAgent(Agent):
 
     def get_reward(self, observation: list[dict]) -> float:
         """ This function calculated the reward of each individual agent. """
-        own_tt = -1 * next(obs[kc.TRAVEL_TIME] for obs in observation if obs[kc.AGENT_ID] == self.id) ## Anastasia added the -1
+        own_tt = -1 * next(obs['travel_time'] for obs in observation if obs['id'] == self.id) ## Anastasia added the -1
         return own_tt
     
     #Create noises
@@ -173,6 +171,6 @@ class HumanAgent(Agent):
     
     def create_memory(self): #RK: are you sure this shall be in init?
 
-        for i in range(len(self.action_space)):
+        for i in range(self.action_space):
             for r in range(self.remember):
                 self.days[i].append(self.cost[i])
