@@ -3,6 +3,7 @@ import numpy as np
 import os
 import pandas as pd
 
+from pathlib import Path
 from scipy.stats import entropy
 
 class Table_record_creator:
@@ -22,6 +23,11 @@ class Table_record_creator:
 
 
         """
+
+
+
+        RoutingZoo = str(Path.home() / "Documents/Simulator_human_behaviour")
+        self.route = RoutingZoo
 
         self.number_of_episode = number_of_episode +1
         self.folder = folder
@@ -60,33 +66,77 @@ class Table_record_creator:
         
         """
 
-        if not os.path.exists(f'raws/{self.folder}'):
-            os.makedirs(f'raws/{self.folder}')
+        if not os.path.exists(f'{self.route}/raws/{self.folder}'):
+
+            os.makedirs(f'{self.route}/raws/{self.folder}')
         
         for i in range(1,self.number_of_episode):
-            act = pd.read_csv(f'training_records/agents/{self.folder}/ep{i}.csv')
-            ep = pd.read_csv(f'training_records/episodes/{self.folder}/ep_ep{i}.csv')
+
+            #act = pd.read_csv(f'training_records/agents/{self.folder}/ep{i}.csv')
+            #ep = pd.read_csv(f'training_records/episodes/{self.folder}/ep_ep{i}.csv')
+            #df = pd.merge(act,ep,right_on='id',left_on='id')
+            #cost = df.cost_table.str.split(pat=',', expand=True)
+
+            #for name in range(self.action_space):
+
+             #   cost = cost.rename(columns = {name:f'cost_{name}'})
+
+            #df = df.merge(cost,right_index=True,left_index=True)
+            #df = df.drop(columns = ['cost_table'])
+
+            #utility = df.utility.str.split(pat=',', expand=True)
+
+            #for name in range(self.action_space):
+
+                #utility = utility.rename(columns = {name:f'U_{name}'})
+
+            #df = df.merge(utility,right_index=True,left_index=True)
+            #df = df.drop(columns = ['utility','kind'])
+            #df['day'] = i
+            act = pd.read_csv(f'{self.route}/training_records/agents/{self.folder}/ep{i}.csv')
+            ep = pd.read_csv(f'{self.route}/training_records/episodes/{self.folder}/ep_ep{i}.csv')
             df = pd.merge(act,ep,right_on='id',left_on='id')
             cost = df.cost_table.str.split(pat=',', expand=True)
+
             for name in range(self.action_space):
+
                 cost = cost.rename(columns = {name:f'cost_{name}'})
+
             df = df.merge(cost,right_index=True,left_index=True)
             df = df.drop(columns = ['cost_table'])
-            utility = df.utility.str.split(pat=',', expand=True)
+
+            utility = df.utilities.str.split(pat=',', expand=True)
+
             for name in range(self.action_space):
+
                 utility = utility.rename(columns = {name:f'U_{name}'})
+                utility[f'U_{name}'] = utility[f'U_{name}'].str.replace(']','')
+                utility[f'U_{name}'] = utility[f'U_{name}'].str.replace('[','')
+
+
+            noise = [list(map(float, row.strip('[]').split())) for row in df.noises]
+            noise = pd.DataFrame(noise)
+
+            for name in range(self.action_space):
+
+                noise = noise.rename(columns = {name:f'noise_{name}'})
+
             df = df.merge(utility,right_index=True,left_index=True)
-            df = df.drop(columns = ['utility','kind'])
+            df = df.merge(noise,right_index=True,left_index=True)
+            df = df.drop(columns = ['utilities','noises','kind','reward_right','reward'])
             df['day'] = i
-            df.to_csv(f'raws/{self.folder}/raw{i}.csv',index=False)
+            df.to_csv(f'{self.route}/raws/{self.folder}/raw{i}.csv',index=False)
         
         det_main=pd.DataFrame([])
+
         for number in range(1,self.number_of_episode):
-            det = pd.read_csv(f'training_records/detector/{self.folder}/detector_ep{number}.csv')
+
+            det = pd.read_csv(f'{self.route}/training_records/detector/{self.folder}/detector_ep{number}.csv')
             det['day'] = number
             det_main = pd.concat([det_main,det])
+
         det_main = det_main.reset_index(drop=True)
-        det_main.to_csv(f'training_records/detector/{self.folder}/all_det.csv',index=False)
+        det_main.to_csv(f'{self.route}/training_records/detector/{self.folder}/all_det.csv',index=False)
 
     def Raw_data_frame(self,df_final = pd.DataFrame([])):
         """
@@ -94,22 +144,23 @@ class Table_record_creator:
         Create the joint raw data and a folder with all of the raw data
     
         """
-        if not os.path.exists('raw_all'):
-            os.makedirs('raw_all')
+        if not os.path.exists(f'{self.route}/raw_all'):
+            os.makedirs(f'{self.route}/raw_all')
 
 
         self.Concater_to_raw_data()
 
         for i in range(1,self.number_of_episode):
-            df = pd.read_csv(f'raws/{self.folder}/raw{i}.csv')
+
+            df = pd.read_csv(f'{self.route}/raws/{self.folder}/raw{i}.csv')
             df_ = pd.concat([df_final,df])
             df_final = df_
 
 
-        df_final['value'] = df_final.apply(lambda row: row[f'cost_{row["action"]}'], axis=1)
-        df_final['label'] = df_final.apply(lambda row: f'cost_{row["action"]}', axis=1)
+        df_final['value'] = df_final.apply(lambda row: row[f'cost_{int(row["action"])}'], axis=1)
+        df_final['label'] = df_final.apply(lambda row: f'cost_{int(row["action"])}', axis=1)
         
-        df_final.to_csv(f'raw_all/raw_all_{self.folder}.csv',index=False)
+        df_final.to_csv(f'{self.route}/raw_all/raw_all_{self.folder}.csv',index=False)
 
         return df_final
     
@@ -117,81 +168,99 @@ class Table_record_creator:
     
     def link_data(self):
 
-        detector = self.detector_std(pd.read_csv(f'training_records/detector/{self.folder}/all_det.csv'))
+        detector = self.detector_std(pd.read_csv(f'{self.route}/training_records/detector/{self.folder}/all_det.csv'))
 
-        with open(f'result/{self.folder}_link.csv', 'w', newline='') as file:
+        with open(f'{self.route}/result/{self.folder}_link.csv', 'w', newline='') as file:
+
             writer = csv.writer(file)
             writer.writerow(['name', 'link'])
+
             for key, value in detector.items():
+
                 writer.writerow([key, value])
             
         result_link = {}
 
-        df = pd.read_csv(f'result/{self.folder}_link.csv')
-        result_link[self.folder] = df.values[6, 1]
+        df = pd.read_csv(f'{self.route}/result/{self.folder}_link.csv')
+        result_link[self.folder] = df.values[2, 1]
 
-        with open(f'result/link_result.csv', 'w', newline='') as file:
+        with open(f'{self.route}/result/link_result.csv', 'w', newline='') as file:
+
             writer = csv.writer(file)
             writer.writerow(['name', 'value'])
+
             for key, value in result_link.items():
+
                 writer.writerow([key, value])
 
-        os.remove(f'result/{self.folder}_link.csv')
+        os.remove(f'{self.route}/result/{self.folder}_link.csv')
 
     def entropy_data(self, df):
 
         entropy = self.entropy_calculator(df)
 
-        with open(f'result/{self.folder}_entropy.csv', 'w', newline='') as file:
+        with open(f'{self.route}/result/{self.folder}_entropy.csv', 'w', newline='') as file:
+
             writer = csv.writer(file)
             writer.writerow(['name', 'entropy'])
+
             for key, value in entropy.items():
+
                 writer.writerow([key, value])
 
         result_entropy = {}
 
-        df = pd.read_csv(f'result/{self.folder}_entropy.csv')
+        df = pd.read_csv(f'{self.route}/result/{self.folder}_entropy.csv')
 
         result_entropy[self.folder] = [np.mean(df.values[:, 1]),np.std(df.values[:, 1])]
 
-        with open(f'result/entropy_result.csv', 'w', newline='') as file:
+        with open(f'{self.route}/result/entropy_result.csv', 'w', newline='') as file:
+
             writer = csv.writer(file)
             writer.writerow(['name', 'value'])
+
             for key, value in result_entropy.items():
+
                 writer.writerow([key, value])
         
-        os.remove(f'result/{self.folder}_entropy.csv')
+        os.remove(f'{self.route}/result/{self.folder}_entropy.csv')
 
     def TT_data(self, df):
 
         TravelTime = self.TotalTravelTime(df=df)
 
-        with open(f'result/{self.folder}_TT.csv', 'w', newline='') as file:
+        with open(f'{self.route}/result/{self.folder}_TT.csv', 'w', newline='') as file:
+
             writer = csv.writer(file)
             writer.writerow(['day', 'TT'])
+
             for key, value in TravelTime.items():
+
                 writer.writerow([key, value])
 
         result_TT = {}
 
-        df = pd.read_csv(f'result/{self.folder}_TT.csv')
+        df = pd.read_csv(f'{self.route}/result/{self.folder}_TT.csv')
 
         result_TT[self.folder] = [np.mean(df.values[:, 1]),np.std(df.values[:, 1])]
 
 
-        with open(f'result/TT_result.csv', 'w', newline='') as file:
+        with open(f'{self.route}/result/TT_result.csv', 'w', newline='') as file:
+
             writer = csv.writer(file)
             writer.writerow(['name', 'value'])
+
             for key, value in result_TT.items():
+
                 writer.writerow([key, value])
         
-        os.remove(f'result/{self.folder}_TT.csv')
+        os.remove(f'{self.route}/result/{self.folder}_TT.csv')
 
     #Creating the final data as a table record
 
     def table_record_creator(self):
 
-        df = pd.read_csv('result/entropy_result.csv')
+        df = pd.read_csv(f'{self.route}/result/entropy_result.csv')
         df.value = df.value.str.replace('[',"")
         df.value = df.value.str.replace(']',"")
         entropy = df.name.str.split('_',expand=True)
@@ -200,7 +269,7 @@ class Table_record_creator:
         entropy1 = entropy1.rename(columns={0:'entropy_value',1:'entropy_std'})
         entropy = entropy.merge(entropy1,right_index=True,left_index=True)
 
-        df = pd.read_csv('result/link_result.csv')
+        df = pd.read_csv(f'{self.route}/result/link_result.csv')
         df.value = df.value.str.replace('[',"")
         df.value = df.value.str.replace("'","")
         df.value = df.value.str.replace(']',"")
@@ -210,7 +279,7 @@ class Table_record_creator:
         link1 = link1.rename(columns={0:'link_value',1:'link_std'})
         link = link.merge(link1,right_index=True,left_index=True)
 
-        df = pd.read_csv('result/TT_result.csv')
+        df = pd.read_csv(f'{self.route}/result/TT_result.csv')
         df.name = df.name.str.replace('_TT.csv',"")
         df.value = df.value.str.replace('[',"")
         df.value = df.value.str.replace(']',"")
@@ -264,10 +333,16 @@ class Table_record_creator:
         entropy_dict = {}
 
         for i in range(len(counts)):
+
             calc = counts[i]
             total_count = sum(calc)
             probabilities = [i / total_count for i in calc]
             entropy_value = entropy(probabilities,base=2)
+
+            if np.isnan(entropy_value):
+
+                entropy_value = 1
+
             entropy_dict[i] = entropy_value
         
         return entropy_dict
@@ -280,17 +355,19 @@ class Table_record_creator:
 
         for d in days:
 
-            value = df[df.day==d].sum().reward
+            value = df[df.day==d].sum().travel_time
             TT[d] = value
         
         return TT
     
     def check_result_folder(self):
     
-        if not os.path.exists(f'result'):
-            os.makedirs(f'result')
+        if not os.path.exists(f'{self.route}/result'):
+
+            os.makedirs(f'{self.route}/result')
 
     def check_raw_folder(self):
     
-        if not os.path.exists(f'raws'):
-            os.makedirs(f'raws')
+        if not os.path.exists(f'{self.route}/raws'):
+
+            os.makedirs(f'{self.route}/raws')
