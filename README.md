@@ -1,8 +1,12 @@
 # RoutingZoo
 
-The main goal of RoutingZoo is to implement the most popular human learning model into RouteRL simulation. Based on the simulation the package create a detailed result, shows the mean value of a given link with its standard deviation, shows thwe TT overal on the system with its standard deviation and the netropy of the agents choice. The package can be used to make recreation of the simulation using the same initial parameters and creating differnt simulations with different parameters.
+**Routing ZOO** is a simulation platform where virtual drivers experiment with routing strategies to navigate from origins to destinations in dense urban networks. Participants engage in a "routing game," where their collective path choices generate congestion, influence expected travel costs, and adapt through learning and available information.
 
+The framework defines scenarios using a network (based on OSM graphs) and demand patterns (players characterized by $(o_i, d_i, t_i)$), simulated over a fixed number of days (typically 300). Each day corresponds to a SUMO simulation, where agents' collective decisions determine actual travel costs, primarily travel times.
 
-network|	model|	demand|	Bounded|	Greedy|	link_value|	link_std|	TT_value|	TT_std|	entropy_value|	entropy_std|
-|------:|---------:|--------:|----------:|---------:|-----------:|---------:|----------:|-----------:|-----------:|-----------|
-||||||||||||
+Each agent follows a predefined behavioral model, ranging from simple methods (e.g., Markov-Learning, Weighted-Average, Bounded Rationality) to complex, custom models implemented via Python scripts.
+
+Upon completing the simulation, we provide detailed statistics at two levels:
+
+- **Agent-Level**: Insights into individual learning processes, convergence speed, choice stability, and learning outcomes.
+- **System-Level**: Evaluations of the network solution’s proximity to Wardrop Equilibrium, its stability over time, and its empirical realism.
