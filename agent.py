@@ -67,7 +67,7 @@ class HumanAgent(Agent):
 
         #Noise-params
         self.noise_alpha = kwargs['noise_alpha']
-        self.stored_noise = None
+        self.stored_noises = None
         self.human_noise = np.random.gumbel() #RK: This shall be generalized towards 'k'-paths noise at init.
         self.noise_taste = kwargs['noise_taste']
         self.noise_random = kwargs['noise_random']
@@ -110,7 +110,7 @@ class HumanAgent(Agent):
 
             if p < self.greedy:
 
-                action = np.random.randint(low=0,high=len(self.action_space)) #RK: First bounded rationality, then greedy.
+                action = np.random.randint(low=0,high=self.action_space) #RK: First bounded rationality, then greedy.
 
             else:
 
